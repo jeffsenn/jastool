@@ -5,9 +5,16 @@ TEST_URL="/images/empty.gif"
 DEBUG=False
 SOCK_TIMEOUT=5.0
 STAT_FILE = "/run/conncheck.dat"
+LOG_FILE = "/run/conncheck.log"
 
 def now():
     return int(round(time.time()))
+
+def log(msg):
+    try:
+        open(LOG_FILE,"a").write(time.strftime("%D-%T:",time.localtime())+msg+"\n")
+    except:
+        print "LOG FAIL",msg
 
 def test_connect(hp, timeout=2.0):
     s = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -54,25 +61,30 @@ if __name__ == '__main__':
         else:
             stat = [t,t,0, 0,0,0, 0,0,0]
     if DEBUG: print "STAT", stat
+    logit = False
+    before = list(stat)
     if worked:
         stat[2] = 0
         if stat[5] == 0:
             stat[4] = t
+            logit = True
         stat[5] += 1
         stat[3] = t
     else:
         stat[5] = 0
         if stat[2] == 0:
             stat[1] = t
+            logit = True
         stat[2] += 1
         stat[0] = t
     if DEBUG: print "STAT", stat
-    
+    if logit: log(repr(before)+" --> "+repr(stat))
     if stat[2] > 2 and (stat[1]-stat[0]) > 45:
         # more than 2 failures in a row for more than 45 seconds
         tt = now()
         if tt - stat[7] > 300: # only toggle every 5 minutes
             print "TOGGLE ROUTER"
+            log("TOGGLE_ROUTER")
             try:
                 import toggle
                 toggle.toggle(1, 2.0)
@@ -82,6 +94,7 @@ if __name__ == '__main__':
                 stat[7] = tt
             except:
                 print "TOGGLE FAIL"
+                log("TOGGLE_FAIL")                
         else:
             print "TOGGLE SKIP too soon",tt
 
