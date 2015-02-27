@@ -4,7 +4,7 @@ ROUTER="192.168.1.1"
 TEST_URL="/images/empty.gif"
 DEBUG=False
 SOCK_TIMEOUT=5.0
-STAT_FILE = "/tmp/conncheck.dat"
+STAT_FILE = "/run/conncheck.dat"
 
 def now():
     return int(round(time.time()))
