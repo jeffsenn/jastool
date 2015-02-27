@@ -70,17 +70,20 @@ if __name__ == '__main__':
     
     if stat[2] > 2 and (stat[1]-stat[0]) > 45:
         # more than 2 failures in a row for more than 45 seconds
-        print "TOGGLE ROUTER"
-        try:
-            import toggle
-            tt = now()
-            toggle.toggle(1, 2.0)
-            if stat[8] == 0:
+        tt = now()
+        if tt - stat[7] > 300: # only toggle every 5 minutes
+            print "TOGGLE ROUTER"
+            try:
+                import toggle
+                toggle.toggle(1, 2.0)
+                if stat[8] == 0:
+                    stat[7] = tt
+                stat[8] += 1
                 stat[7] = tt
-            stat[8] += 1
-            stat[7] = tt
-        except:
-            print "TOGGLE FAIL"
+            except:
+                print "TOGGLE FAIL"
+        else:
+            print "TOGGLE SKIP too soon",tt
 
     open(STAT_FILE,'wb').write("%d %d %d %d %d %d %d %d %d" % tuple(stat))
         
