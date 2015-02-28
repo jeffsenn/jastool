@@ -79,7 +79,7 @@ if __name__ == '__main__':
         stat[0] = t
     if DEBUG: print "STAT", stat
     if logit: log(repr(before)+" --> "+repr(stat))
-    if stat[2] > 2 and (stat[1]-stat[0]) > 45:
+    if stat[2] > 2 and (stat[0]-stat[1]) > 45:
         # more than 2 failures in a row for more than 45 seconds
         tt = now()
         if tt - stat[7] > 300: # only toggle every 5 minutes
