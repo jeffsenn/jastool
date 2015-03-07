@@ -1,4 +1,4 @@
-import urllib2, socket, json, subprocess
+import urllib2, socket, json, subprocess, time
 DEBUG=True
 HOST=None
 IP=None
@@ -28,8 +28,10 @@ def updateNS(server, host, current_ip = None, secret=KEY):
                     httpResponse = urllib2.urlopen(urllib2.Request(url)).read()
                     break
                 except:
+                    if DEBUG: print "RETRY"
                     if retries == 1:
                         raise
+                    time.sleep(0.50)
         jsonData = json.loads(httpResponse)
         current_ip = jsonData[attr]
     try:
