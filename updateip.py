@@ -25,15 +25,19 @@ def updateNS(server, host, current_ip = None, secret=KEY):
         for retries in xrange(4,0,-1):
             for url,attr in IP_SERVERS:
                 try:
+                    if DEBUG: print "TRY", url                    
                     httpResponse = urllib2.urlopen(urllib2.Request(url)).read()
                     break
                 except:
-                    if DEBUG: print "RETRY"
+                    if DEBUG: print "RETRY", url
                     if retries == 1:
                         raise
                     time.sleep(0.50)
-        jsonData = json.loads(httpResponse)
-        current_ip = jsonData[attr]
+                
+                jsonData = json.loads(httpResponse)
+                current_ip = jsonData[attr]
+                if current_ip: break
+            if current_ip: break
     try:
         named_ip = nslookup(host,server)
         if DEBUG: print "NSLOOKUP",named_ip
