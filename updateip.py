@@ -6,7 +6,7 @@ IP=None
 from secrets import MAYA_NS
 SERVER, DEFAULT_DOMAIN, KEY = MAYA_NS
 
-IP_SERVERS=(('http://jsonip.com','ip'),('http://ip-api.com/json','query'))
+IP_SERVERS=(('http://aislynn.net/ip.cgi', 'ip'), ('http://jsonip.com','ip'),('http://ip-api.com/json','query'),('http://api.ipify.org/?format=json','ip'),('http://wtfismyip.com/json',"YourFuckingIPAddress"))
 
 def nslookup(host,server):
         p= subprocess.Popen(["nslookup",host,server], close_fds=True,
@@ -21,6 +21,7 @@ def nslookup(host,server):
 
 def updateNS(server, host, current_ip = None, secret=KEY):
     result = None
+    httpResponse = None
     if current_ip is None:
         for retries in xrange(4,0,-1):
             for url,attr in IP_SERVERS:
@@ -30,11 +31,12 @@ def updateNS(server, host, current_ip = None, secret=KEY):
                     break
                 except:
                     if DEBUG: print "RETRY", url
-                    if retries == 1:
-                        raise
                     time.sleep(0.50)
                     continue
-            break
+            if httpResponse is not None:
+                break
+        if httpResponse is None:
+            raise Exception("could not find IP address from any server")
         jsonData = json.loads(httpResponse)
         current_ip = jsonData[attr]
     try:
