@@ -1,4 +1,5 @@
-import os,sys
+import os,sys,subprocess
+
 EXTENSIONS=('mp3','m4a','aac','wav','aif','mp2')
 
 def process_file(src,dst):
@@ -13,7 +14,7 @@ def process_file(src,dst):
   dr = os.path.split(dst)[0]
   if not os.path.exists(dr):
       os.makedirs(dr)
-  os.system("ffmpeg -i '%s' -b:a 128000 '%s'" %(src,dst))
+  subprocess.call(['ffmpeg','-i',src,'-b:a','128000',dst])
   # compare sizes
   s1 = os.path.getsize(src)
   s2 = os.path.getsize(dst)
