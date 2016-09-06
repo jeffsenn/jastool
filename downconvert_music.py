@@ -18,8 +18,8 @@ def process_file(src,dst):
   # compare sizes
   s1 = os.path.getsize(src)
   s2 = os.path.getsize(dst)
-  ratio = s2 / s1
-  print "SIZES",s1,s2,ratio
+  ratio = float(s2) / float(s1)
+  print "SIZES",os.path.split(src)[0],s1,s2,ratio
   if ratio < 0.90:
       print "Using orignal:",dst
       open(dst,"wb").write(open(src,"rb").read())
