@@ -8,9 +8,11 @@ def process_file(src,dst):
   dst = dst.split('.')
   dst[-1] = 'mp3'
   dst = '.'.join(dst)
-  dst = "/tmp/foo.mp3"
   if os.path.exists(dst):
       return 2
+  dr = os.path.split(dst)[0]
+  if not os.path.exists(dr):
+      os.makedirs(dr)
   os.system("ffmpeg -i '%s' -b:a 128000 '%s'" %(src,dst))
   # compare sizes
   s1 = os.path.getsize(src)
@@ -44,4 +46,5 @@ def process_dir(src,dst):
     #    print(os.path.join(root, name))
 
 if __name__ == "__main__":
-    process_dir(sys.argv[1],".")
+    process_dir(sys.argv[1],sys.argv[2])
+
