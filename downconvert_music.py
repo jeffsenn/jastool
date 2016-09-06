@@ -20,9 +20,9 @@ def process_file(src,dst):
   s2 = os.path.getsize(dst)
   ratio = float(s2) / float(s1)
   print "SIZES",os.path.split(src)[0],s1,s2,ratio
-  if ratio < 0.90:
+  if ratio > 0.90:
       os.remove(dst)
-      print "Using orignal:",src
+      print "Using original:",src
       open(dst,"wb").write(open(src,"rb").read())
   else:
       print "Converted:",dst
