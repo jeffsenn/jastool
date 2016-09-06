@@ -21,11 +21,11 @@ def process_file(src,dst):
   ratio = float(s2) / float(s1)
   print "SIZES",os.path.split(src)[0],s1,s2,ratio
   if ratio < 0.90:
-      print "Using orignal:",dst
+      os.remove(dst)
+      print "Using orignal:",src
       open(dst,"wb").write(open(src,"rb").read())
   else:
       print "Converted:",dst
-  lkjdsf
   
 def process_dir(src,dst):
   not_processed = {}
