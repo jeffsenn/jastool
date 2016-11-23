@@ -33,21 +33,43 @@ def get_my_ip(IP_SERVERS=(('http://aislynn.net/ip.cgi', 'ip'), ('http://jsonip.c
     current_ip = jsonData[attr]
     return current_ip
     
+def find_cached_host(host, cache_time=2*60*60, cache_loc="/tmp/route53update.cache"):
+    try:
+        tim,hst,cache_val = open(cache_loc,'rb').read().split(',')
+        if hst != host or time.time() - float(tim) > cache_time:
+            cache_val = None
+    except:
+        cache_val = None
+    return cache_val
 
-def find_host_byname(host, typ="A"):
-    rs = []
-    conn = route53.connect(**secrets.AWS_CREDS)
-    for zone in conn.list_hosted_zones():
-        for record_set in zone.record_sets:
-            if (record_set.rrset_type == typ and
-                record_set.name == host+"."):
-                 rs.append(record_set)
-    return rs
+def set_cached_host(host, val, cache_loc="/tmp/route53update.cache"):
+    open(cache_loc, 'wb').write("%s,%s,%s"%(time.time(),host,val))
     
-def update_host(host, new_ip):
+def find_host_byname(host, typ="A",retries=2,time_between=1):
+    # sometimes this randomly fails -- so build in retry mech
+    while retries > 0:
+        try:
+            retries -= 1
+            rs = []
+            conn = route53.connect(**secrets.AWS_CREDS)
+            for zone in conn.list_hosted_zones():
+                for record_set in zone.record_sets:
+                    if (record_set.rrset_type == typ and
+                        record_set.name == host+"."):
+                        rs.append(record_set)
+            return rs
+        except:
+            if retries < 1:
+                raise
+            time.sleep(time_between)
+    
+def update_host(host, new_ip, use_cache=False):
+    if use_cache and new_ip == find_cached_host(host):
+        print "No update necessary - cache matches"
+        return
     rs = find_host_byname(host)
     if len(rs) != 1:
-        raise Exception("no unique record found",rs)
+        raise Exception("no unique HOST record found to update",rs)
     rs = rs[0]
     if len(rs.records) != 1:
         raise Exception("not a single IP A rec",rs.records)
@@ -55,9 +77,12 @@ def update_host(host, new_ip):
         print "Updated IP:",host,new_ip
         rs.records = (new_ip,)
         rs.save()
+        set_cached_host(host,new_ip)
     else:
         print "No update necessary"
+        set_cached_host(host,new_ip)    
 
 if __name__ == '__main__':
     import sys
-    update_host(sys.argv[1],get_my_ip())
+    use_cache = "--use_cache" in sys.argv
+    update_host(sys.argv[1],get_my_ip(),use_cache)
