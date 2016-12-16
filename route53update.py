@@ -14,7 +14,8 @@ import urllib2
 import json
 DEBUG = False
 
-def get_my_ip(IP_SERVERS=(('http://aislynn.net/ip.cgi', 'ip'), ('http://jsonip.com','ip'),('http://ip-api.com/json','query'),('http://api.ipify.org/?format=json','ip'),('http://wtfismyip.com/json',"YourFuckingIPAddress"))):
+def get_my_ip(IP_SERVERS=(('http://aislynn.net/ip.cgi', 'ip'), ('http://64.90.51.180/ip.cgi', 'ip'),('http://jsonip.com','ip'),('http://ip-api.com/json','query'),('http://api.ipify.org/?format=json','ip'),('http://wtfismyip.com/json',"YourFuckingIPAddress"))):
+    httpResponse = None
     for retries in xrange(4,0,-1):
         for url,attr in IP_SERVERS:
             try:
@@ -28,7 +29,10 @@ def get_my_ip(IP_SERVERS=(('http://aislynn.net/ip.cgi', 'ip'), ('http://jsonip.c
         if httpResponse is not None:
             break
     if httpResponse is None:
-        raise Exception("could not find IP address from any server")
+        # this is likely due to the network being completely down
+        # I think we should just silently fail in this case
+        return None
+        #raise Exception("could not find IP address from any server")
     jsonData = json.loads(httpResponse)
     current_ip = jsonData[attr]
     return current_ip
@@ -85,4 +89,6 @@ def update_host(host, new_ip, use_cache=False):
 if __name__ == '__main__':
     import sys
     use_cache = "--use_cache" in sys.argv
-    update_host(sys.argv[1],get_my_ip(),use_cache)
+    myip = get_my_ip()
+    if myip != None:
+        update_host(sys.argv[1],myip,use_cache)
